@@ -404,7 +404,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         val textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
-        displayHtmlContentWithInlineAttachments(`++
+        displayHtmlContentWithInlineAttachments(
             htmlText = textToDisplay,
             attachmentResolver = messageViewInfo.attachmentResolver,
             onPageFinishedListener = onRenderingFinishedListener::onLoadFinished,
