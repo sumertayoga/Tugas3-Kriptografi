@@ -390,7 +390,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         resetView()
         renderAttachments(messageViewInfo)
 
-        val messageText = messageViewInfo.text
+        val messageText = messageViewInfo.text //ganti
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
@@ -404,7 +404,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         val textToDisplay = messageText
             ?: displayHtml.wrapStatusMessage(context.getString(R.string.webview_empty_message))
 
-        displayHtmlContentWithInlineAttachments(
+        displayHtmlContentWithInlineAttachments(`++
             htmlText = textToDisplay,
             attachmentResolver = messageViewInfo.attachmentResolver,
             onPageFinishedListener = onRenderingFinishedListener::onLoadFinished,
