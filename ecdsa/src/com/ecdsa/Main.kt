@@ -4,6 +4,7 @@ import java.math.BigInteger
 import com.ecdsa.curves.Secp256k1
 import com.ecdsa.hash.Sha256
 import java.security.SecureRandom
+import com.ecdsa.hash.Keccak
 
 
 fun main() {
@@ -17,7 +18,7 @@ fun main() {
     //  val privateKey = BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16)
 
     // menghitung kunci public dari kunci private
-    val keypair = KeyGenerator.generateKey(privateKey, Secp256k1)
+    val keypair = KeyGenerator.generateKey(privateKey, Keccak)
 
     println("Private key: ${keypair.privateKey}, length: ${keypair.privateKey.bitLength()}")
     println("Public key X: ${keypair.publicKey.x}, length: ${keypair.publicKey.x.bitLength()}")
