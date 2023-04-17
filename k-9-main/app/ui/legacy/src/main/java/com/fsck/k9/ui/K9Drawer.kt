@@ -269,6 +269,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
         }
     }
 
+    //app
     private fun addFooterItems() {
         sliderView.addStickyFooterItem(
             PrimaryDrawerItem().apply {
@@ -278,6 +279,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
                 isSelectable = false
             },
         )
+
 
         sliderView.addStickyFooterItem(
             PrimaryDrawerItem().apply {

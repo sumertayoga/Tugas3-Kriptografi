@@ -18,7 +18,7 @@ fun main() {
     //  val privateKey = BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16)
 
     // menghitung kunci public dari kunci private
-    val keypair = KeyGenerator.generateKey(privateKey, Keccak)
+    val keypair = KeyGenerator.generateKey(privateKey, Secp256k1)
 
     println("Private key: ${keypair.privateKey}, length: ${keypair.privateKey.bitLength()}")
     println("Public key X: ${keypair.publicKey.x}, length: ${keypair.publicKey.x.bitLength()}")
@@ -27,11 +27,11 @@ fun main() {
     // sign data
     val message = "hello world"
     val data = message.toByteArray()
-    val signature = Sign.signData(keypair, data, Sha256)
+    val signature = Sign.signData(keypair, data, Keccak)
 
     // verify
     val publicKey = keypair.publicKey
-    val isValid = Sign.verifySignature(publicKey, data, Sha256, signature)
+    val isValid = Sign.verifySignature(publicKey, data, Keccak, signature)
     println("signature r: ${signature.r}")
     println("signature s: ${signature.s}")
     println("is valid: ${isValid}")
