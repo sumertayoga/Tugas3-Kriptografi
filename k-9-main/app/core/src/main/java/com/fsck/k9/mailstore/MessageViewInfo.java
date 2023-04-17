@@ -20,7 +20,7 @@ public class MessageViewInfo {
     public final String subject;
     public final boolean isSubjectEncrypted;
     public final AttachmentResolver attachmentResolver;
-    public final String text;
+    public String text;
     public final CryptoResultAnnotation cryptoResultAnnotation;
     public final List<AttachmentViewInfo> attachments;
     public final String extraText;
@@ -58,6 +58,9 @@ public class MessageViewInfo {
                 Collections.<AttachmentViewInfo>emptyList(), preferredUnsubscribeUri);
     }
 
+    public void setText(String text){
+        this.text = text;
+    }
     public static MessageViewInfo createWithErrorState(Message message, boolean isMessageIncomplete) {
         try {
             Body emptyBody = new TextBody("");

@@ -389,7 +389,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
         resetView()
         renderAttachments(messageViewInfo)
-
+        println(messageViewInfo.text)
         val messageText = messageViewInfo.text //ganti
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
