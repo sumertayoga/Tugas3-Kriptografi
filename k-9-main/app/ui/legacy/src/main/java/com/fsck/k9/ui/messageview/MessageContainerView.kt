@@ -8,14 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.AttributeSet
-import android.view.ContextMenu
+import android.view.*
 import android.view.ContextMenu.ContextMenuInfo
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import android.view.View.OnCreateContextMenuListener
-import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
 import android.widget.LinearLayout
@@ -36,9 +31,12 @@ import com.fsck.k9.ui.R
 import com.fsck.k9.view.MessageWebView
 import com.fsck.k9.view.MessageWebView.OnPageFinishedListener
 import com.fsck.k9.view.WebViewConfigProvider
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
+
 
 class MessageContainerView(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -389,8 +387,11 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
         resetView()
         renderAttachments(messageViewInfo)
-        println(messageViewInfo.text)
-        val messageText = messageViewInfo.text //ganti
+
+        // Decrypt
+        val doc: Document = Jsoup.parse(messageViewInfo.text)
+        println(doc)
+        val messageText = messageViewInfo.text
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {

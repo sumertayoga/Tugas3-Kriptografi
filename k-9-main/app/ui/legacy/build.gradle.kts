@@ -4,7 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
 }
 
+
 dependencies {
+
     api(projects.app.ui.base)
     debugImplementation(projects.app.ui.setup)
     implementation(projects.app.core)
@@ -44,6 +46,7 @@ dependencies {
     implementation(libs.circleimageview)
     api(libs.appauth)
 
+    implementation("org.jsoup:jsoup:1.14.3")
     implementation(libs.commons.io)
     implementation(libs.androidx.core.ktx)
     implementation(libs.jcip.annotations)
@@ -51,7 +54,6 @@ dependencies {
     implementation(libs.mime4j.core)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)
 
@@ -64,7 +66,10 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+
+
 }
+
 
 android {
     namespace = "com.fsck.k9.ui"
