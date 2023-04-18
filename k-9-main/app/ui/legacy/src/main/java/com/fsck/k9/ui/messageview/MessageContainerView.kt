@@ -150,8 +150,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             this.keyTodecrypt = editText.text.toString()
             this.keyToVerify = editText2.text.toString()
 
-            println("thishtml"+this.msginHtml)
-
             val doc: Document = Jsoup.parse(this.msginHtml!!)
             var div = doc.select("div").first()
             // ------------------ Doramei Decrypt -------------
@@ -159,12 +157,9 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
                 if (div != null) {
                     val divText = div.text()
-                    println("decrypt this text:"+ divText)
                     val decryptedText = decrypt(divText, this.keyTodecrypt!!)
-                    println("decrypt :"+ decryptedText)
                     div.text(decryptedText)
 
-                    println("decryptext" + decryptedText)
                 }
 
             }
@@ -175,7 +170,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             if (this.keyToVerify != null &&  this.keyToVerify != ""){
                 if (div!=null){
                     val text: String = div.text()  // Mendapatkan teks dari elemen div
-                    println(text)
 
                     if (text!=""){
                         if(text.indexOf("<ds>") != -1 && text.indexOf("</ds>") !=-1 ){
@@ -184,25 +178,25 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                                 text.indexOf("</ds>"),
                             ).replace(" ", "")
 
-                            println("ds =" + ds)
                             val msg = text.substring(
                                 0,
                                 text.indexOf("<ds>")-1
                             )
-                            println(msg)
                             val data = msg.toByteArray()
                             // testing
-                            this.keyToVerify = "55066263022277343669578718895168534326250603453777594175500187360389116729240,83121579216557378445487899878180864668798711284981320763518679672151497189239"
-                            val splitStrings = this.keyToVerify!!.split(",")
-                            val x = BigInteger(splitStrings[0])
-                            val y = BigInteger(splitStrings[1])
-                            val isValid = verifySignature(Point(x,y,Secp256k1) ,data, ds)
-                            if (isValid){
-                                showVeryfiedBox("Tanda tangan digital telah diverifikasi dan dinyatakan BENAR")
+                            if(this.keyToVerify!!.indexOf(",") != -1){
+                                val splitStrings = this.keyToVerify!!.split(",")
+                                val x = BigInteger(splitStrings[0])
+                                val y = BigInteger(splitStrings[1])
+                                val isValid = verifySignature(Point(x,y,Secp256k1) ,data, ds)
+                                if (isValid){
+                                    showVeryfiedBox("Tanda tangan digital telah diverifikasi dan dinyatakan BENAR")
+                                }
+                                else{
+                                    showVeryfiedBox("Tanda tangan digital yang diberikan TIDAK BENAR dan tidak dapat diterima.")
+                                }
                             }
-                            else{
-                                showVeryfiedBox("Tanda tangan digital yang diberikan TIDAK BENAR dan tidak dapat diterima.")
-                            }
+
                         }
                     }
 
@@ -226,7 +220,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
     private fun showVeryfiedBox(message: String) {
         val builder = AlertDialog.Builder(context)
-        builder.setTitle("Verify Enail")
+        builder.setTitle("Verify Email")
         builder.setMessage(message)
         builder.setNegativeButton("Close") { dialog, which ->
             // melakukan sesuatu ketika tombol "Batal" ditekan
@@ -514,7 +508,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
     ) {
         this.attachmentCallback = attachmentCallback
 
-        println("display again")
         resetView()
         renderAttachments(messageViewInfo)
 
