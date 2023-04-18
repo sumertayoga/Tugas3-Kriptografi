@@ -1,4 +1,6 @@
+
 import java.math.BigInteger
+import java.util.Base64
 
 fun pad(input: String) : ByteArray{
     var temp = input.toByteArray()
@@ -39,7 +41,8 @@ fun ubyteArrayToByteArray(ubyteArray: UByteArray): ByteArray {
     return ByteArray(ubyteArray.size) { ubyteArray[it].toByte() }
 }
 
-fun encrypt(plaintext : String, key: String) : ByteArray{
+
+fun encrypt(plaintext : String, key: String) : String{
     var sbox = SBox(key)
     var pbox = PBox(arrayOf(6, 3, 0, 4, 2, 7, 5, 1))
     var keys = key_expansion(key)
@@ -48,7 +51,7 @@ fun encrypt(plaintext : String, key: String) : ByteArray{
     for(i in 0..plainText.size-1 step BLOCK_SIZE){
         cipherText += (encrypt_block(plainText.sliceArray(i..i+BLOCK_SIZE-1), keys, sbox, pbox))
     }
-    return cipherText
+    return Base64.getEncoder().encodeToString(cipherText)
 }
 
 fun encrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PBox) : ByteArray{
@@ -69,31 +72,42 @@ fun encrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PB
             cipherBlockArr = cipherBlockArr.takeLast(8).toByteArray()
         }
         cipherBlockArr = right + cipherBlockArr
-        cipherValue = BigInteger(1, cipherBlockArr) xor BigInteger(1, keys[i])
+        cipherValue = xorBigInteger(BigInteger(1, cipherBlockArr), BigInteger(1, keys[i]))
         cipherBlock = to_bytesArr(cipherValue, 16)
+        if(cipherBlock.size < 16){
+            for (i in 1..(16-cipherBlock.size)){
+                cipherBlock = ByteArray(1){0}.plus(cipherBlock)
+            }
+        }
     }
     return cipherBlock
 }
 
-fun decrypt(cipherTeks: ByteArray, key: String) : ByteArray{
+
+fun decrypt(cipherTeks: String, key: String) : String{
+    var cipherArr = Base64.getDecoder().decode(cipherTeks);
     var sBox = SBox(key)
     var pBox = PBox(arrayOf(6, 3, 0, 4, 2, 7, 5, 1))
     var keys = key_expansion(key)
     var plaintext = ByteArray(0)
 
-    for(i in 0..cipherTeks.size-1 step BLOCK_SIZE){
-        plaintext += (decrypt_block(cipherTeks.sliceArray(i..i+BLOCK_SIZE-1), keys, sBox, pBox))
+    for(i in 0..cipherArr.size-1 step BLOCK_SIZE){
+        plaintext += (decrypt_block(cipherArr.sliceArray(i..i+BLOCK_SIZE-1), keys, sBox, pBox))
     }
-    return plaintext
+    return String(unpad(plaintext))
 
 }
 
 fun decrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PBox) : ByteArray{
     var plainBlock = block
     for(i in (ROUND-1) downTo 0){
-        var plainValue = BigInteger(1, plainBlock) xor BigInteger(1, keys[i])
+        var plainValue = xorBigInteger(BigInteger(1, plainBlock), BigInteger(1, keys[i]))
         plainBlock = to_bytesArr(plainValue,16)
-
+        if(plainBlock.size < 16){
+            for (i in 1..(16-plainBlock.size)){
+                plainBlock = ByteArray(1){0}.plus(plainBlock)
+            }
+        }
         var left = plainBlock.sliceArray(0..7)
         var right = plainBlock.sliceArray(8..15)
         var uLeft = byteArrayToUByteArray(left)
@@ -103,7 +117,7 @@ fun decrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PB
         var substituted_2 = subs(permutted)
 
         plainValue = BigInteger(1, intArrToByteArr(substituted_2))
-        plainValue = plainValue xor BigInteger(1, right)
+        plainValue = xorBigInteger(plainValue, BigInteger(1, right))
         plainBlock = to_bytesArr(plainValue,8)
         plainBlock = plainBlock + left
     }
@@ -111,8 +125,8 @@ fun decrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PB
 }
 
 fun main() {
-    var cipherText = encrypt("dorameibestcipherintheworld", "sabtu")
+    var cipherText = encrypt("doramei best cipher in the world", "sabtu")
     var plaintext =  decrypt(cipherText, "sabtu")
-    println(String(cipherText))
-    println(String(unpad(plaintext)))
+    println(cipherText)
+    println(plaintext)
 }

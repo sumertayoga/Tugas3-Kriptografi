@@ -22,6 +22,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.fsck.k9.contact.ContactIntentHelper
 import com.fsck.k9.doramei.decrypt
+import com.fsck.k9.ecdsa.Point
 import com.fsck.k9.helper.ClipboardManager
 import com.fsck.k9.helper.Utility
 import com.fsck.k9.mail.Address
@@ -40,6 +41,10 @@ import org.jsoup.nodes.Element
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
+import com.fsck.k9.ecdsa.Sign.verifySignature
+import com.fsck.k9.ecdsa.Signature
+import com.fsck.k9.ecdsa.curves.Secp256k1
+import java.math.BigInteger
 
 class MessageContainerView(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -68,10 +73,10 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
     // decrypted text variable
     private var decryptText: Boolean = false
-    private var keyTodecrypt: String = ""
+    private var keyTodecrypt: String? = null
 
     private var keyToVerify: String? = null
-    private var msginHtml: String = ""
+    private var msginHtml: String? = null
 
 
 
@@ -91,11 +96,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
             setOnCreateContextMenuListener(this@MessageContainerView)
             visibility = VISIBLE
-        }
-        val verify = findViewById<Button>(R.id.button_verify)
-        verify.setOnClickListener {
-            // Call your function here
-            showVerifyBox()
         }
         attachmentsContainer = findViewById(R.id.attachments_container)
         unsignedTextContainer = findViewById(R.id.message_unsigned_container)
@@ -132,65 +132,80 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
         // tambahkan input field ke dalam dialog box
         val editText = EditText(context)
-        builder.setView(editText)
+        val editText2 = EditText(context)
+        val inputTitle1 = TextView(context)
+        val inputTitle2 = TextView(context)
+        inputTitle1.text = "Key Cipher"
+        inputTitle2.text = "Key ECDSA"
 
+        val layout = LinearLayout(context)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.addView(inputTitle1)
+        layout.addView(editText)
+        layout.addView(inputTitle2)
+        layout.addView(editText2)
+        builder.setView(layout)
         builder.setPositiveButton("OK") { dialog, which ->
             // mengambil value dari input field
             this.keyTodecrypt = editText.text.toString()
-            this.decryptText = true
-//            refreshDisplayedContent()
+            this.keyToVerify = editText2.text.toString()
+
             println("thishtml"+this.msginHtml)
 
-            val doc: Document = Jsoup.parse(this.msginHtml)
+            val doc: Document = Jsoup.parse(this.msginHtml!!)
+            var div = doc.select("div").first()
+            // ------------------ Doramei Decrypt -------------
+            if (this.keyTodecrypt != null && this.keyTodecrypt != ""){
 
-            val div = doc.select("div[dir=auto]").first()
-//            if (div !=null){
-//                val text: String = div.text()  // Mendapatkan teks dari elemen div
-//                println(text)
-//
-//                if (text!=""){
-//                    if(text.indexOf("<ds>") != -1 && text.indexOf("</ds>") !=-1 ){
-//                        val ds = text.substring(
-//                            text.indexOf("<ds>") +4,
-//                            text.indexOf("</ds>"),
-//                        ).replace(" ", "")
-//                    }
-//                }
-//            }
-            if (div != null) {
-                val divText = div.text()
-                val decryptedText = decrypt(divText, this.keyTodecrypt!!)
-                println("decrypt :"+ decryptedText)
-                div.text(decryptedText)
+                if (div != null) {
+                    val divText = div.text()
+                    val decryptedText = decrypt(divText, this.keyTodecrypt!!)
+                    println("decrypt :"+ decryptedText)
+                    div.text(decryptedText)
+                    println("decryptext" + decryptedText)
+                }
+
             }
+
+            // ----------------------------------------------
+
+            // ---------------- ECDSA Verify ------------------
+            if (this.keyToVerify != null &&  this.keyToVerify != ""){
+                if (div!=null){
+                    val text: String = div.text()  // Mendapatkan teks dari elemen div
+                    println(text)
+
+                    if (text!=""){
+                        if(text.indexOf("<ds>") != -1 && text.indexOf("</ds>") !=-1 ){
+                            val ds = text.substring(
+                                text.indexOf("<ds>") +4,
+                                text.indexOf("</ds>"),
+                            ).replace(" ", "")
+
+                            println("ds =" + ds)
+                            val msg = text.substring(
+                                0,
+                                text.indexOf("<ds>")-1
+                            )
+                            println(msg)
+                            val data = msg.toByteArray()
+                            // testing
+                            this.keyToVerify = "55066263022277343669578718895168534326250603453777594175500187360389116729240,83121579216557378445487899878180864668798711284981320763518679672151497189239"
+                            val splitStrings = this.keyToVerify!!.split(",")
+                            val x = BigInteger(splitStrings[0])
+                            val y = BigInteger(splitStrings[1])
+                            val isValid = verifySignature(Point(x,y,Secp256k1) ,data, ds)
+                            println("is valid: ${isValid}")
+                        }
+                    }
+
+                }
+
+
+            }
+
             val modifiedHtml = doc.toString()
-            
             messageContentView.changeHtmlContent(modifiedHtml)
-        }
-        builder.setNegativeButton("Batal") { dialog, which ->
-            // melakukan sesuatu ketika tombol "Batal" ditekan
-            this.decryptText = false
-        }
-
-        // membuat dialog box
-        val dialog = builder.create()
-        dialog.show()
-    }
-    private fun showVerifyBox() {
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle("Veryfied User?")
-        builder.setMessage("Input Key")
-
-        // tambahkan input field ke dalam dialog box
-        val editText = EditText(context)
-        builder.setView(editText)
-
-        builder.setPositiveButton("OK") { dialog, which ->
-            // mengambil value dari input field
-            this.keyTodecrypt = editText.text.toString()
-            this.decryptText = true
-
-
         }
         builder.setNegativeButton("Batal") { dialog, which ->
             // melakukan sesuatu ketika tombol "Batal" ditekan

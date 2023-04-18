@@ -28,12 +28,19 @@ class GenerateKeyActivity : K9Activity() {
         publicKey = findViewById(R.id.textViewPublicKey)
     }
 
+    fun stringToHex(input: String): String {
+        return input.toByteArray().joinToString("") { "%02x".format(it) }
+    }
+
     @SuppressLint("SetTextI18n")
     fun showPublicKey(view: View){
-        val privateKeyString = BigInteger(privateKey.text.toString(), 16)
+        val myString = privateKey.text.toString()
+        val hexString = stringToHex(myString)
+        val privateKeyString = BigInteger(hexString, 16)
         val keyPair = generateKey(privateKeyString, Secp256k1)
-
         publicKey.text = "Public Key X: ${keyPair.publicKey.x}" + "\n" + "Public Key Y: ${keyPair.publicKey.y}"
+        println("publickey y = " +publicKey.x)
+        println("publickey y = " +publicKey.y)
     }
 
     companion object {

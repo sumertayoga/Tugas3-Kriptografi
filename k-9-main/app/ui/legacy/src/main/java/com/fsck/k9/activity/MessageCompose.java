@@ -741,6 +741,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         var privateKey = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16);
         var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
 
+
         if(isSign.isChecked()){
 //            if(privateKeyText.getText().toString().isBlank()){
 //                Toast.makeText(this, "Private Key kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
@@ -748,7 +749,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
 //            }
             var data = message.getBytes();
             var signature = Sign.INSTANCE.signData(keypair, data, Keccak.INSTANCE);
-            var digitalSignatureString = "\n\n<ds>\n" + signature.getR().toString(16) + "\n" + signature.getS().toString(16) + "\n</ds>";
+            var digitalSignatureString = "\n\n<ds>\n" + signature + "\n</ds>";
             Log.d("AAA", digitalSignatureString);
             message = message + digitalSignatureString;
         }

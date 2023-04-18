@@ -1,3 +1,4 @@
+import java.lang.Integer.max
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -40,9 +41,26 @@ fun xorBinary(binary1 : String, binary2: String): String{
     return resultBinaryString
 }
 
+fun xorBigInteger(s1: BigInteger, s2: BigInteger): BigInteger {
+    val maxLength = max(s1.bitLength(), s2.bitLength())
+    val paddedS1 = s1.toString(2).padStart(maxLength, '0')
+    val paddedS2 = s2.toString(2).padStart(maxLength, '0')
+
+    val result = paddedS1.zip(paddedS2) { charA, charB -> if (charA == charB) '0' else '1' }
+        .joinToString("")
+
+    val bigIntResult = BigInteger(result, 2)
+
+    return bigIntResult
+}
+
 fun binToHex(binaryString: String) : String{
-    val intVal = BigInteger(binaryString,2)
-    return intVal.toString(16)
+    var hex = ""
+    for (i in 0 until binaryString.length step 4) {
+        val bits = binaryString.substring(i, i + 4)
+        hex += Integer.toHexString(bits.toInt(2))
+    }
+    return hex
 }
 
 fun main() {

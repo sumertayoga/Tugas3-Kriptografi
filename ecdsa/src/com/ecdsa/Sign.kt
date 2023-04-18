@@ -1,8 +1,10 @@
 package com.ecdsa
 
-import java.math.BigInteger
 import com.ecdsa.hash.Hasher
+import java.math.BigInteger
 import java.security.SecureRandom
+import java.util.*
+import com.ecdsa.hash.Keccak
 
 
 class Signature (val r : BigInteger, val s : BigInteger)
@@ -20,7 +22,7 @@ object Sign {
     }
 
 
-    fun signData (keyPair: KeyPair, data : ByteArray, hasher : Hasher) : Signature {
+    fun signData (keyPair: KeyPair, data : ByteArray, hasher : Hasher) : String {
         // hash message diggest
         val g = keyPair.publicKey.curve.g
         val n = keyPair.publicKey.curve.n
@@ -50,22 +52,45 @@ object Sign {
             signData(keyPair, data, hasher)
         }
 
-        // tanda tangan message m adalah (r,s)
-        return Signature(r, s)
+        // convert r and s to byte arrays
+        val rBytes = r.toByteArray()
+        val sBytes = s.toByteArray()
+
+        // concatenate r and s byte arrays
+
+        // concatenate r and s byte arrays
+        val rString = Base64.getEncoder().encodeToString(rBytes)
+        val sString = Base64.getEncoder().encodeToString(sBytes)
+        // encode concatenated byte array using Base64 encoding
+
+        // encode concatenated byte array using Base64 encoding
+        val outputSignature: String = rString + "," +sString
+
+        return outputSignature
     }
 
+    fun verifySignature (publicKey : Point, data: ByteArray, signature: String) : Boolean {
 
-    fun verifySignature (publicKey : Point, data: ByteArray, hasher: Hasher, signature: Signature) : Boolean {
-        if (!(signature.r.bitLength()<=256 && signature.r.bitLength()>0 && signature.s.bitLength()<=256 && signature.s.bitLength()>0)){
+        val signatureParts = signature.split(",".toRegex()).toTypedArray()
+        val rBytes = Base64.getDecoder().decode(signatureParts[0])
+        val sBytes = Base64.getDecoder().decode(signatureParts[1])
+
+        // create BigInteger objects from byte arrays representing r and s
+
+        // create BigInteger objects from byte arrays representing r and s
+        val signature_r = BigInteger(1, rBytes)
+        val signature_s = BigInteger(1, sBytes)
+
+        if (!(signature_r.bitLength()<=256 && signature_r.bitLength()>0 && signature_s.bitLength()<=256 && signature_s.bitLength()>0)){
             return false
         }
 
         // Menghitung e = Hash (m)
-        val e = BigInteger(1, hasher.hash(data))
+        val e = BigInteger(1, Keccak.hash(data))
         val g = publicKey.curve.g
         val n = publicKey.curve.n
-        val r = signature.r
-        val s = signature.s
+        val r = signature_r
+        val s = signature_s
 
         if (r < BigInteger.ONE || r > n - BigInteger.ONE) {
             return false
