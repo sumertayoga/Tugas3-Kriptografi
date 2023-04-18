@@ -159,9 +159,11 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
                 if (div != null) {
                     val divText = div.text()
+                    println("decrypt this text:"+ divText)
                     val decryptedText = decrypt(divText, this.keyTodecrypt!!)
                     println("decrypt :"+ decryptedText)
                     div.text(decryptedText)
+
                     println("decryptext" + decryptedText)
                 }
 
@@ -195,7 +197,12 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                             val x = BigInteger(splitStrings[0])
                             val y = BigInteger(splitStrings[1])
                             val isValid = verifySignature(Point(x,y,Secp256k1) ,data, ds)
-                            println("is valid: ${isValid}")
+                            if (isValid){
+                                showVeryfiedBox("Tanda tangan digital telah diverifikasi dan dinyatakan BENAR")
+                            }
+                            else{
+                                showVeryfiedBox("Tanda tangan digital yang diberikan TIDAK BENAR dan tidak dapat diterima.")
+                            }
                         }
                     }
 
@@ -210,6 +217,19 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         builder.setNegativeButton("Batal") { dialog, which ->
             // melakukan sesuatu ketika tombol "Batal" ditekan
             this.decryptText = false
+        }
+
+        // membuat dialog box
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun showVeryfiedBox(message: String) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Verify Enail")
+        builder.setMessage(message)
+        builder.setNegativeButton("Close") { dialog, which ->
+            // melakukan sesuatu ketika tombol "Batal" ditekan
         }
 
         // membuat dialog box
