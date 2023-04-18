@@ -5,7 +5,17 @@ import com.fsck.k9.ecdsa.hash.Hasher
 import java.security.SecureRandom
 
 
-class Signature (val r : BigInteger, val s : BigInteger)
+class Signature (val r : BigInteger, val s : BigInteger){
+    @JvmName("getR1")
+    fun getR() : BigInteger {
+        return r;
+    }
+
+    @JvmName("getS1")
+    fun getS(): BigInteger{
+        return s;
+    }
+}
 
 object Sign {
 
