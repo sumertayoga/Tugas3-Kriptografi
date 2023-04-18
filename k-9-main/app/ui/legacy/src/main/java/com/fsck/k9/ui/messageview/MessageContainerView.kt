@@ -1,5 +1,6 @@
 package com.fsck.k9.ui.messageview
 
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -13,9 +14,11 @@ import android.view.ContextMenu.ContextMenuInfo
 import android.view.View.OnCreateContextMenuListener
 import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ShareCompat.IntentBuilder
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -36,7 +39,12 @@ import org.jsoup.nodes.Document
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
+import androidx.fragment.app.FragmentManager
 
+// algoritma decrypt
+import com.fsck.k9.doramei.decrypt
+import com.fsck.k9.doramei.unpad
+import java.util.*
 
 class MessageContainerView(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -63,6 +71,11 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
     private var attachmentCallback: AttachmentViewCallback? = null
     private var currentAttachmentResolver: AttachmentResolver? = null
 
+    // decrypted text variable
+    private var decryptText: Boolean = false
+    private var keyTodecrypt: String? = null
+
+
     @get:JvmName("hasHiddenExternalImages")
     var hasHiddenExternalImages = false
         private set
@@ -71,7 +84,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         super.onFinishInflate()
 
         layoutInflater = LayoutInflater.from(context)
-
+        showDialogBox()
         messageContentView = findViewById<MessageWebView>(R.id.message_content).apply {
             if (!isInEditMode) {
                 configure(webViewConfigProvider.createForMessageView())
@@ -89,7 +102,6 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
     override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenuInfo?) {
         super.onCreateContextMenu(menu)
-
         val webView = view as WebView
         val hitTestResult = webView.hitTestResult
 
@@ -107,6 +119,32 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                 createEmailMenu(menu, email = hitTestResult.extra)
             }
         }
+    }
+
+    private fun showDialogBox() {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Decrypt Text?")
+        builder.setMessage("Masukan Kunci")
+
+        // tambahkan input field ke dalam dialog box
+        val editText = EditText(context)
+        builder.setView(editText)
+
+        builder.setPositiveButton("OK") { dialog, which ->
+            // mengambil value dari input field
+            this.keyTodecrypt = editText.text.toString()
+            this.decryptText = true
+
+
+        }
+        builder.setNegativeButton("Batal") { dialog, which ->
+            // melakukan sesuatu ketika tombol "Batal" ditekan
+            this.decryptText = false
+        }
+
+        // membuat dialog box
+        val dialog = builder.create()
+        dialog.show()
     }
 
     private fun createLinkMenu(
@@ -376,6 +414,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         refreshDisplayedContent()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun displayMessageViewContainer(
         messageViewInfo: MessageViewInfo,
         onRenderingFinishedListener: OnRenderingFinishedListener,
@@ -388,10 +427,31 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         resetView()
         renderAttachments(messageViewInfo)
 
-        // Decrypt
-        val doc: Document = Jsoup.parse(messageViewInfo.text)
-        println(doc)
-        val messageText = messageViewInfo.text
+        // ----------------- Decrypt ----------------------
+        val messageText: String = if(this.decryptText && this.keyTodecrypt != null){
+            val doc: Document = Jsoup.parse(messageViewInfo.text)
+
+            // get encrypted
+            val div = doc.select("div").first()
+
+            if (div != null) {
+                val divText = div.text()
+                val decoder = Base64.getDecoder()
+                val byteArray = decoder.decode(div.text())
+                val decryptedBytes = decrypt(byteArray, this.keyTodecrypt!!)
+                val decryptedText = String(unpad(decryptedBytes))
+                println("decrypt :"+ decryptedText)
+                div.text(decryptedText)
+            }
+            val modifiedHtml = doc.toString()
+            modifiedHtml
+        }
+        else{
+            messageViewInfo.text
+        }
+
+        // --------------------------------------------------
+
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
