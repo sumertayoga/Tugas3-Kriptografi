@@ -259,6 +259,10 @@
             android:label="@string/folders_action" />
 
         <activity
+            android:name=".ui.generatekey.GenerateKeyActivity"
+            android:label="@string/generate_key_action" />
+
+        <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/prefs_title" />
 
