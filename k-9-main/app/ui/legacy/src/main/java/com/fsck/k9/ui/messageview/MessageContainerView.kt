@@ -436,10 +436,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
             if (div != null) {
                 val divText = div.text()
-                val decoder = Base64.getDecoder()
-                val byteArray = decoder.decode(div.text())
-                val decryptedBytes = decrypt(byteArray, this.keyTodecrypt!!)
-                val decryptedText = String(unpad(decryptedBytes))
+                val decryptedText = decrypt(divText, this.keyTodecrypt!!)
                 println("decrypt :"+ decryptedText)
                 div.text(decryptedText)
             }
