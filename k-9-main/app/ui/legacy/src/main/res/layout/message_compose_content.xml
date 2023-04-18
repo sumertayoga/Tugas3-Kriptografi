@@ -25,17 +25,40 @@
 
             <EditText
                 android:id="@+id/subject"
+                style="@style/ComposeEditTextLarge"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/message_compose_subject_hint"
-                android:inputType="textEmailSubject|textAutoCorrect|textCapSentences"
-                android:imeOptions="actionNext|flagNoExtractUi"
-                android:singleLine="true"
                 android:background="@android:color/transparent"
+                android:hint="judul"
+                android:imeOptions="actionNext|flagNoExtractUi"
+                android:inputType="textEmailSubject|textAutoCorrect|textCapSentences"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
-                style="@style/ComposeEditTextLarge"
-                />
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/isEncrypt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Encrypt Text" />
+
+            <EditText
+                android:id="@+id/encryptKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="Key"
+                android:inputType="textPersonName"
+                android:textColorHint="#9C9C9C" />
+
         </LinearLayout>
 
         <View

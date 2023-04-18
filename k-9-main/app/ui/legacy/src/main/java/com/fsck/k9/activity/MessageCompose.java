@@ -1,7 +1,13 @@
 package com.fsck.k9.activity;
 
 
+import static com.fsck.k9.doramei.MainKt.decrypt;
+import static com.fsck.k9.doramei.MainKt.encrypt;
+
+import static java.sql.DriverManager.println;
+
 import java.io.File;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,14 +28,17 @@ import android.content.IntentSender.SendIntentException;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -40,6 +49,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewStub;
 import android.view.Window;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -121,7 +131,7 @@ import org.jetbrains.annotations.NotNull;
 import org.openintents.openpgp.OpenPgpApiManager;
 import org.openintents.openpgp.util.OpenPgpApi;
 import timber.log.Timber;
-
+import com.fsck.k9.doramei.MainKt;
 
 @SuppressWarnings("deprecation") // TODO get rid of activity dialogs and indeterminate progress bars
 public class MessageCompose extends K9Activity implements OnClickListener,
@@ -689,6 +699,8 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         setTitle(action.getTitleResource());
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Nullable
     private MessageBuilder createMessageBuilder(boolean isDraft) {
         MessageBuilder builder;
@@ -715,6 +727,18 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             recipientPresenter.builderSetProperties(builder);
         }
 
+        var isEncrypt = (CheckBox)findViewById(R.id.isEncrypt);
+        var keyText = (TextView)findViewById(R.id.encryptKey);
+        var message = CrLfConverter.toCrLf(messageContentView.getText());
+        if(isEncrypt.isChecked()){
+            if(keyText.getText().toString().isBlank()){
+                Toast.makeText(this, "Key kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
+                return null;
+            }
+            message = Base64.getEncoder().encodeToString(encrypt(message, keyText.getText().toString()));
+        }
+
+
         builder.setSubject(Utility.stripNewLines(subjectView.getText().toString()))
                 .setSentDate(new Date())
                 .setHideTimeZone(K9.isHideTimeZone())
@@ -724,7 +748,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 .setIdentity(identity)
                 .setReplyTo(replyToPresenter.getAddresses())
                 .setMessageFormat(currentMessageFormat)
-                .setText(CrLfConverter.toCrLf(messageContentView.getText())) //sini
+                .setText(message) //sini
                 .setAttachments(attachmentPresenter.getAttachments())
                 .setInlineAttachments(attachmentPresenter.getInlineAttachments())
                 .setSignature(CrLfConverter.toCrLf(signatureView.getText()))
@@ -929,7 +953,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             recipientPresenter.onSwitchAccount(this.account);
             quotedMessagePresenter.onSwitchAccount(this.account);
 
-            // not sure how to handle mFolder, mSourceMessage?
+            // not sure how to handle mFolder, mSourceMessage
         }
 
         switchToIdentity(identity);
@@ -1018,7 +1042,8 @@ public class MessageCompose extends K9Activity implements OnClickListener,
             prepareToFinish(true);
         } else if (id == R.id.send) {
             checkToSendMessage();
-        } else if (id == R.id.save) {
+        }
+        else if (id == R.id.save) {
             checkToSaveDraftAndSave();
         } else if (id == R.id.discard) {
             askBeforeDiscard();
