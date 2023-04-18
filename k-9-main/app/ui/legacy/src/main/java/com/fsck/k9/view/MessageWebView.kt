@@ -77,6 +77,9 @@ class MessageWebView : WebView {
         setHtmlContent(htmlText)
     }
 
+    fun changeHtmlContent(htmlText: String){
+        setHtmlContent(htmlText)
+    }
     private fun setWebViewClient(
         attachmentResolver: AttachmentResolver?,
         onPageFinishedListener: OnPageFinishedListener?,

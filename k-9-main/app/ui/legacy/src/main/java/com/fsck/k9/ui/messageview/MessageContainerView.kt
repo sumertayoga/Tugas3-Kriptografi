@@ -71,6 +71,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
     private var keyTodecrypt: String = ""
 
     private var keyToVerify: String? = null
+    private var msginHtml: String = ""
 
 
 
@@ -123,6 +124,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showDialogBox() {
         val builder = AlertDialog.Builder(context)
         builder.setTitle("Decrypt Text?")
@@ -136,8 +138,34 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             // mengambil value dari input field
             this.keyTodecrypt = editText.text.toString()
             this.decryptText = true
+//            refreshDisplayedContent()
+            println("thishtml"+this.msginHtml)
 
+            val doc: Document = Jsoup.parse(this.msginHtml)
 
+            val div = doc.select("div[dir=auto]").first()
+//            if (div !=null){
+//                val text: String = div.text()  // Mendapatkan teks dari elemen div
+//                println(text)
+//
+//                if (text!=""){
+//                    if(text.indexOf("<ds>") != -1 && text.indexOf("</ds>") !=-1 ){
+//                        val ds = text.substring(
+//                            text.indexOf("<ds>") +4,
+//                            text.indexOf("</ds>"),
+//                        ).replace(" ", "")
+//                    }
+//                }
+//            }
+            if (div != null) {
+                val divText = div.text()
+                val decryptedText = decrypt(divText, this.keyTodecrypt!!)
+                println("decrypt :"+ decryptedText)
+                div.text(decryptedText)
+            }
+            val modifiedHtml = doc.toString()
+            
+            messageContentView.changeHtmlContent(modifiedHtml)
         }
         builder.setNegativeButton("Batal") { dialog, which ->
             // melakukan sesuatu ketika tombol "Batal" ditekan
@@ -451,53 +479,14 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
     ) {
         this.attachmentCallback = attachmentCallback
 
+        println("display again")
         resetView()
         renderAttachments(messageViewInfo)
 
-        // ----------------- Decrypt ----------------------
 
-        val doc: Document = Jsoup.parse(messageViewInfo.text)
+        this.msginHtml = messageViewInfo.text
 
-            // get encrypted
-
-        val div = doc.select("div[dir=auto]").first() // Memilih elemen div dengan atribut dir=auto
-        if (div !=null){
-
-            val text: String = div.text()  // Mendapatkan teks dari elemen div
-            println(text)
-
-            if (text!=""){
-                val ds = text.substring(
-                    text.indexOf("<ds>") +4,
-                    text.indexOf("</ds>"),
-                ).replace(" ", "")
-
-            }
-        }
-
-
-
-
-
-        val messageText: String = if(this.decryptText && this.keyTodecrypt != null) {
-            if (div != null) {
-                val divText = div.text()
-                val decryptedText = decrypt(divText, this.keyTodecrypt!!)
-                println("decrypt :"+ decryptedText)
-                div.text(decryptedText)
-            }
-            val modifiedHtml = doc.toString()
-            modifiedHtml
-        }
-        else{
-            messageViewInfo.text
-        }
-
-
-
-
-        // --------------------------------------------------
-
+        val messageText = messageViewInfo.text
         if (messageText != null && !isShowingPictures) {
             if (Utility.hasExternalImages(messageText)) {
                 if (loadPictures) {
