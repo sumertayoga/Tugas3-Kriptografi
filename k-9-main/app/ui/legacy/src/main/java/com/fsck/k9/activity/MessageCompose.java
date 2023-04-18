@@ -7,6 +7,7 @@ import static com.fsck.k9.doramei.MainKt.encrypt;
 import static java.sql.DriverManager.println;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -87,6 +88,10 @@ import com.fsck.k9.controller.MessageReference;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.controller.SimpleMessagingListener;
+import com.fsck.k9.ecdsa.KeyGenerator;
+import com.fsck.k9.ecdsa.Sign;
+import com.fsck.k9.ecdsa.curves.Secp256k1;
+import com.fsck.k9.ecdsa.hash.Keccak;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment;
 import com.fsck.k9.fragment.AttachmentDownloadDialogFragment.AttachmentDownloadCancelListener;
 import com.fsck.k9.fragment.ProgressDialogFragment;
@@ -728,15 +733,33 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         }
 
         var isEncrypt = (CheckBox)findViewById(R.id.isEncrypt);
+        var isSign = (CheckBox)findViewById(R.id.isSign);
+        var privateKeyText = (TextView)findViewById(R.id.privateKeySignature);
         var keyText = (TextView)findViewById(R.id.encryptKey);
         var message = CrLfConverter.toCrLf(messageContentView.getText());
+
+        var privateKey = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16);
+        var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
+
+        if(isSign.isChecked()){
+//            if(privateKeyText.getText().toString().isBlank()){
+//                Toast.makeText(this, "Private Key kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
+//                return null;
+//            }
+            var data = message.getBytes();
+            var signature = Sign.INSTANCE.signData(keypair, data, Keccak.INSTANCE);
+            var digitalSignatureString = "\n\n<ds>\n" + signature.getR().toString(16) + "\n" + signature.getS().toString(16) + "\n</ds>";
+            Log.d("AAA", digitalSignatureString);
+            message = message + digitalSignatureString;
+        }
+
         if(isEncrypt.isChecked()){
             if(keyText.getText().toString().isBlank()){
                 Toast.makeText(this, "Key kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
                 return null;
             }
             message = encrypt(message, keyText.getText().toString());
-            Log.d("AAA", decrypt(message, keyText.getText().toString()));
+            Log.d("AAA dec", decrypt(message, keyText.getText().toString()));
         }
 
         Log.d("AAA", message);
