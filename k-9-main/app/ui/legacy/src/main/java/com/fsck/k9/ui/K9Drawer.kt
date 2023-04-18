@@ -280,6 +280,14 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
             },
         )
 
+        sliderView.addStickyFooterItem(
+            PrimaryDrawerItem().apply {
+                nameRes = R.string.generate_key_action
+                iconRes = folderIconProvider.iconFolderResId
+                identifier = DRAWER_ID_GENERATE_KEY
+                isSelectable = false
+            },
+        )
 
         sliderView.addStickyFooterItem(
             PrimaryDrawerItem().apply {
@@ -346,6 +354,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
         when (drawerItem.identifier) {
             DRAWER_ID_PREFERENCES -> SettingsActivity.launch(parent)
             DRAWER_ID_FOLDERS -> parent.launchManageFoldersScreen()
+            DRAWER_ID_GENERATE_KEY -> parent.launchGenerateKeyScreen()
             DRAWER_ID_UNIFIED_INBOX -> parent.openUnifiedInbox()
             else -> {
                 val folder = drawerItem.tag as Folder
@@ -531,6 +540,7 @@ class K9Drawer(private val parent: MessageList, savedInstanceState: Bundle?) : K
         private const val DRAWER_ID_DIVIDER: Long = 1
         private const val DRAWER_ID_PREFERENCES: Long = 2
         private const val DRAWER_ID_FOLDERS: Long = 3
+        private const val DRAWER_ID_GENERATE_KEY: Long = 4
 
         private const val PROGRESS_VIEW_END_OFFSET = 32
         private const val PROGRESS_VIEW_SLINGSHOT_DISTANCE = 48

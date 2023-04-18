@@ -50,6 +50,7 @@ import com.fsck.k9.ui.K9Drawer
 import com.fsck.k9.ui.R
 import com.fsck.k9.ui.base.K9Activity
 import com.fsck.k9.ui.managefolders.ManageFoldersActivity
+import com.fsck.k9.ui.generatekey.GenerateKeyActivity
 import com.fsck.k9.ui.messagelist.DefaultFolderProvider
 import com.fsck.k9.ui.messagelist.MessageListFragment
 import com.fsck.k9.ui.messagelist.MessageListFragment.MessageListFragmentListener
@@ -633,6 +634,10 @@ open class MessageList :
         }
 
         ManageFoldersActivity.launch(this, account!!)
+    }
+
+    fun launchGenerateKeyScreen() {
+        GenerateKeyActivity.launch(this)
     }
 
     fun openRealAccount(account: Account): Boolean {
