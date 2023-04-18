@@ -6,6 +6,12 @@
     android:layout_height="match_parent">
 
     <!-- Content area -->
+    <Button
+        android:id="@+id/button_verify"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Verify" />
+
     <com.fsck.k9.view.MessageWebView
         android:id="@+id/message_content"
         android:layout_height="wrap_content"

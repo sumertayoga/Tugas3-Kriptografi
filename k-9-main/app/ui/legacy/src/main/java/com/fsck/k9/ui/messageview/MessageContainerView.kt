@@ -1,5 +1,6 @@
 package com.fsck.k9.ui.messageview
 
+// algoritma decrypt
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
@@ -14,15 +15,13 @@ import android.view.ContextMenu.ContextMenuInfo
 import android.view.View.OnCreateContextMenuListener
 import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.app.ShareCompat.IntentBuilder
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.fsck.k9.contact.ContactIntentHelper
+import com.fsck.k9.doramei.decrypt
 import com.fsck.k9.helper.ClipboardManager
 import com.fsck.k9.helper.Utility
 import com.fsck.k9.mail.Address
@@ -34,17 +33,13 @@ import com.fsck.k9.ui.R
 import com.fsck.k9.view.MessageWebView
 import com.fsck.k9.view.MessageWebView.OnPageFinishedListener
 import com.fsck.k9.view.WebViewConfigProvider
+import java.util.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
-import androidx.fragment.app.FragmentManager
-
-// algoritma decrypt
-import com.fsck.k9.doramei.decrypt
-import com.fsck.k9.doramei.unpad
-import java.util.*
 
 class MessageContainerView(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -73,7 +68,10 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
     // decrypted text variable
     private var decryptText: Boolean = false
-    private var keyTodecrypt: String? = null
+    private var keyTodecrypt: String = ""
+
+    private var keyToVerify: String? = null
+
 
 
     @get:JvmName("hasHiddenExternalImages")
@@ -93,7 +91,11 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             setOnCreateContextMenuListener(this@MessageContainerView)
             visibility = VISIBLE
         }
-
+        val verify = findViewById<Button>(R.id.button_verify)
+        verify.setOnClickListener {
+            // Call your function here
+            showVerifyBox()
+        }
         attachmentsContainer = findViewById(R.id.attachments_container)
         unsignedTextContainer = findViewById(R.id.message_unsigned_container)
         unsignedTextDivider = findViewById(R.id.message_unsigned_divider)
@@ -125,6 +127,31 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         val builder = AlertDialog.Builder(context)
         builder.setTitle("Decrypt Text?")
         builder.setMessage("Masukan Kunci")
+
+        // tambahkan input field ke dalam dialog box
+        val editText = EditText(context)
+        builder.setView(editText)
+
+        builder.setPositiveButton("OK") { dialog, which ->
+            // mengambil value dari input field
+            this.keyTodecrypt = editText.text.toString()
+            this.decryptText = true
+
+
+        }
+        builder.setNegativeButton("Batal") { dialog, which ->
+            // melakukan sesuatu ketika tombol "Batal" ditekan
+            this.decryptText = false
+        }
+
+        // membuat dialog box
+        val dialog = builder.create()
+        dialog.show()
+    }
+    private fun showVerifyBox() {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Veryfied User?")
+        builder.setMessage("Input Key")
 
         // tambahkan input field ke dalam dialog box
         val editText = EditText(context)
@@ -428,12 +455,31 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         renderAttachments(messageViewInfo)
 
         // ----------------- Decrypt ----------------------
-        val messageText: String = if(this.decryptText && this.keyTodecrypt != null){
-            val doc: Document = Jsoup.parse(messageViewInfo.text)
+
+        val doc: Document = Jsoup.parse(messageViewInfo.text)
 
             // get encrypted
-            val div = doc.select("div").first()
 
+        val div = doc.select("div[dir=auto]").first() // Memilih elemen div dengan atribut dir=auto
+        if (div !=null){
+
+            val text: String = div.text()  // Mendapatkan teks dari elemen div
+            println(text)
+
+            if (text!=""){
+                val ds = text.substring(
+                    text.indexOf("<ds>") +4,
+                    text.indexOf("</ds>"),
+                ).replace(" ", "")
+
+            }
+        }
+
+
+
+
+
+        val messageText: String = if(this.decryptText && this.keyTodecrypt != null) {
             if (div != null) {
                 val divText = div.text()
                 val decryptedText = decrypt(divText, this.keyTodecrypt!!)
@@ -446,6 +492,9 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
         else{
             messageViewInfo.text
         }
+
+
+
 
         // --------------------------------------------------
 
