@@ -735,8 +735,11 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 Toast.makeText(this, "Key kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
                 return null;
             }
-            message = Base64.getEncoder().encodeToString(encrypt(message, keyText.getText().toString()));
+            message = encrypt(message, keyText.getText().toString());
+            Log.d("AAA", decrypt(message, keyText.getText().toString()));
         }
+
+        Log.d("AAA", message);
 
 
         builder.setSubject(Utility.stripNewLines(subjectView.getText().toString()))
