@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.AttributeSet
+import android.util.Log
 import android.view.*
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View.OnCreateContextMenuListener
@@ -18,10 +19,12 @@ import android.webkit.WebView.HitTestResult
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.app.ShareCompat.IntentBuilder
+import androidx.core.view.forEach
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.fsck.k9.contact.ContactIntentHelper
 import com.fsck.k9.doramei.decrypt
+import com.fsck.k9.doramei.splitByteArray
 import com.fsck.k9.ecdsa.Point
 import com.fsck.k9.helper.ClipboardManager
 import com.fsck.k9.helper.Utility
@@ -37,7 +40,6 @@ import com.fsck.k9.view.WebViewConfigProvider
 import java.util.*
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
@@ -45,6 +47,7 @@ import com.fsck.k9.ecdsa.Sign.verifySignature
 import com.fsck.k9.ecdsa.Signature
 import com.fsck.k9.ecdsa.curves.Secp256k1
 import java.math.BigInteger
+import org.w3c.dom.Element
 
 class MessageContainerView(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
@@ -152,14 +155,24 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
 
             val doc: Document = Jsoup.parse(this.msginHtml!!)
             var div = doc.select("div").first()
+            var decText = ""
+            if(div != null){
+                decText = div.text()
+            }
             // ------------------ Doramei Decrypt -------------
             if (this.keyTodecrypt != null && this.keyTodecrypt != ""){
 
                 if (div != null) {
                     val divText = div.text()
                     val decryptedText = decrypt(divText, this.keyTodecrypt!!)
-                    div.text(decryptedText)
-
+                    decText = String(decryptedText)
+                    div.text("")
+                    val a = splitByteArray(decryptedText, 10.toByte())
+                    a.forEach{ i ->
+                        val newElement = doc.createElement("p")
+                        newElement.text(String(i))
+                        div.appendChild(newElement)
+                    }
                 }
 
             }
@@ -169,19 +182,32 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
             // ---------------- ECDSA Verify ------------------
             if (this.keyToVerify != null &&  this.keyToVerify != ""){
                 if (div!=null){
-                    val text: String = div.text()  // Mendapatkan teks dari elemen div
-
+                    val text: String = decText  // Mendapatkan teks dari elemen div
                     if (text!=""){
                         if(text.indexOf("<ds>") != -1 && text.indexOf("</ds>") !=-1 ){
-                            val ds = text.substring(
-                                text.indexOf("<ds>") +4,
-                                text.indexOf("</ds>"),
-                            ).replace(" ", "")
+                            var ds = ""
+                            var msg = ""
+                            if(this.keyTodecrypt != null && this.keyTodecrypt != ""){
+                                ds = text.substring(
+                                    text.indexOf("<ds>") +5,
+                                    text.indexOf("</ds>")-1,
+                                ).replace(" ", "")
 
-                            val msg = text.substring(
-                                0,
-                                text.indexOf("<ds>")-1
-                            )
+                                msg = text.substring(
+                                    0,
+                                    text.indexOf("<ds>")-2
+                                )
+                            } else{
+                                ds = text.substring(
+                                    text.indexOf("<ds>") +4,
+                                    text.indexOf("</ds>"),
+                                ).replace(" ", "")
+
+                                msg = text.substring(
+                                    0,
+                                    text.indexOf("<ds>")-1
+                                )
+                            }
                             val data = msg.toByteArray()
                             // testing
                             if(this.keyToVerify!!.indexOf(",") != -1){

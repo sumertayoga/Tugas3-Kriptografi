@@ -1,6 +1,7 @@
 package com.fsck.k9.ecdsa
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.fsck.k9.ecdsa.hash.Hasher
 import com.fsck.k9.ecdsa.hash.Keccak
@@ -85,10 +86,10 @@ object Sign {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun verifySignature (publicKey : Point, data: ByteArray, signature: String) : Boolean {
-
         val signatureParts = signature.split(",".toRegex()).toTypedArray()
         val rBytes = Base64.getDecoder().decode(signatureParts[0])
         val sBytes = Base64.getDecoder().decode(signatureParts[1])
+
 
         // create BigInteger objects from byte arrays representing r and s
 

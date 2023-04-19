@@ -8,6 +8,7 @@ import static java.sql.DriverManager.println;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -745,6 +746,8 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 return null;
             }
             var data = message.getBytes();
+            data = UtilityKt.removeByteUnnecessary(data);
+
             var privateKey = new BigInteger(UtilityKt.stringToHex(privateKeyText.getText().toString()), 16);
             var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
             var signature = Sign.INSTANCE.signData(keypair, data, Keccak.INSTANCE);

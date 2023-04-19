@@ -89,7 +89,7 @@ fun encrypt_block(block: ByteArray, keys: Array<ByteArray>, sBox: SBox, pBox: PB
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun decrypt(cipherTeks: String, key: String) : String{
+fun decrypt(cipherTeks: String, key: String) : ByteArray{
     var cipherArr = Base64.getDecoder().decode(cipherTeks);
     var sBox = SBox(key)
     var pBox = PBox(arrayOf(6, 3, 0, 4, 2, 7, 5, 1))
@@ -99,7 +99,7 @@ fun decrypt(cipherTeks: String, key: String) : String{
     for(i in 0..cipherArr.size-1 step BLOCK_SIZE){
         plaintext += (decrypt_block(cipherArr.sliceArray(i..i+BLOCK_SIZE-1), keys, sBox, pBox))
     }
-    return String(unpad(plaintext))
+    return (unpad(plaintext))
 
 }
 

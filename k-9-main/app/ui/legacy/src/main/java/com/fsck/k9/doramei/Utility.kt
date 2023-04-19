@@ -1,5 +1,6 @@
 package com.fsck.k9.doramei
 
+import android.util.Log
 import java.lang.Integer.max
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -10,6 +11,34 @@ fun md5(input: String): String {
     val md = MessageDigest.getInstance("MD5")
     val hash = md.digest(input.toByteArray(Charsets.UTF_8))
     return hash.joinToString("") {"%02x".format(it)}
+}
+
+fun removeByteUnnecessary(input: ByteArray): ByteArray {
+    var temp = input.filter { it != 13.toByte() }.toByteArray()
+//    temp.forEachIndexed { index, byte ->
+//        if(byte == 10.toByte()){
+//            temp[index] = 32.toByte()
+//        }
+//    }
+    return temp
+}
+
+
+fun splitByteArray(byteArray: ByteArray, splitByte: Byte): List<ByteArray> {
+    val subArrays = mutableListOf<ByteArray>()
+    var startIndex = 0
+    for (i in byteArray.indices) {
+        if (byteArray[i] == splitByte) {
+            val subArray = byteArray.copyOfRange(startIndex, i)
+            subArrays.add(subArray)
+            startIndex = i + 1
+        }
+    }
+    if (startIndex < byteArray.size) {
+        val subArray = byteArray.copyOfRange(startIndex, byteArray.size)
+        subArrays.add(subArray)
+    }
+    return subArrays
 }
 
 fun hexToBinary(hexString: String): String {
