@@ -8,7 +8,8 @@ import java.util.Base64
 
 fun pad(input: String) : ByteArray{
     var temp = input.toByteArray()
-    var pad_len = BLOCK_SIZE - (input.length % BLOCK_SIZE)
+    temp = temp.filterNot { it == 13.toByte() }.toByteArray()
+    var pad_len = BLOCK_SIZE - (temp.size % BLOCK_SIZE)
     var pad = ByteArray(pad_len){pad_len.toByte()}
 
     temp = temp.plus(pad)
@@ -46,14 +47,14 @@ fun ubyteArrayToByteArray(ubyteArray: UByteArray): ByteArray {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun encrypt(plaintext : String, key: String) : String{
+fun encrypt(plaintext : String, key: String) : String {
     var sbox = SBox(key)
     var pbox = PBox(arrayOf(6, 3, 0, 4, 2, 7, 5, 1))
     var keys = key_expansion(key)
     var plainText = pad(plaintext)
     var cipherText = ByteArray(0)
-    for(i in 0..plainText.size-1 step BLOCK_SIZE){
-        cipherText += (encrypt_block(plainText.sliceArray(i..i+BLOCK_SIZE-1), keys, sbox, pbox))
+    for (i in 0..plainText.size - 1 step BLOCK_SIZE) {
+        cipherText += (encrypt_block(plainText.sliceArray(i..i + BLOCK_SIZE - 1), keys, sbox, pbox))
     }
     return Base64.getEncoder().encodeToString(cipherText)
 }

@@ -739,22 +739,16 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         var keyText = (TextView)findViewById(R.id.encryptKey);
         var message = CrLfConverter.toCrLf(messageContentView.getText());
 
-//        var privateKey = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16);
-//        var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
-//        69613509801938310885330915575661986911663532954428993526613087933792145928831
-
         if(isSign.isChecked()){
             if(privateKeyText.getText().toString().isBlank()){
-                Toast.makeText(this, "Key untuk Signature kosong, silakan isi key untuk enkripsi", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Key untuk Signature kosong, silakan isi key terlebih dahulu", Toast.LENGTH_LONG).show();
                 return null;
             }
             var data = message.getBytes();
             var privateKey = new BigInteger(UtilityKt.stringToHex(privateKeyText.getText().toString()), 16);
-            Log.d("AAA", privateKey.toString());
             var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
             var signature = Sign.INSTANCE.signData(keypair, data, Keccak.INSTANCE);
             var digitalSignatureString = "\n\n<ds>\n" + signature + "\n</ds>";
-            Log.d("AAA", digitalSignatureString);
             message = message + digitalSignatureString;
         }
 
@@ -764,10 +758,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 return null;
             }
             message = encrypt(message, keyText.getText().toString());
-            Log.d("AAA dec", decrypt(message, keyText.getText().toString()));
         }
-
-        Log.d("AAA", message);
 
 
         builder.setSubject(Utility.stripNewLines(subjectView.getText().toString()))
