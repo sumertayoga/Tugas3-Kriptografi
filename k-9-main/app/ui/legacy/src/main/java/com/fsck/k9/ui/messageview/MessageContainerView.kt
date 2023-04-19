@@ -207,6 +207,7 @@ class MessageContainerView(context: Context, attrs: AttributeSet?) :
                                     0,
                                     text.indexOf("<ds>")-1
                                 )
+                                msg = msg.replace("\\s+".toRegex(), "")
                             }
                             val data = msg.toByteArray()
                             // testing

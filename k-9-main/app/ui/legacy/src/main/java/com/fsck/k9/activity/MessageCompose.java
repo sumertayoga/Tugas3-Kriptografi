@@ -745,9 +745,9 @@ public class MessageCompose extends K9Activity implements OnClickListener,
                 Toast.makeText(this, "Key untuk Signature kosong, silakan isi key terlebih dahulu", Toast.LENGTH_LONG).show();
                 return null;
             }
-            var data = message.getBytes();
+            var message2 = message.replaceAll("\\s+", "");
+            var data = message2.getBytes();
             data = UtilityKt.removeByteUnnecessary(data);
-
             var privateKey = new BigInteger(UtilityKt.stringToHex(privateKeyText.getText().toString()), 16);
             var keypair = KeyGenerator.INSTANCE.generateKey(privateKey, Secp256k1.INSTANCE);
             var signature = Sign.INSTANCE.signData(keypair, data, Keccak.INSTANCE);
