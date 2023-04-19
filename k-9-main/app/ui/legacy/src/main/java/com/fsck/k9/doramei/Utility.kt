@@ -65,6 +65,10 @@ fun binToHex(binaryString: String) : String{
     return hex
 }
 
+fun stringToHex(input: String): String {
+    return input.toByteArray().joinToString("") { "%02x".format(it) }
+}
+
 fun main() {
 
 //    val value: Int = 123456789

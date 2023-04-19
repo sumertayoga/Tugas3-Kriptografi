@@ -29,7 +29,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:hint="judul"
+                android:hint="Subject"
                 android:imeOptions="actionNext|flagNoExtractUi"
                 android:inputType="textEmailSubject|textAutoCorrect|textCapSentences"
                 android:paddingTop="10dp"
