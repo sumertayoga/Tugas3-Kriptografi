@@ -24,7 +24,7 @@ class GenerateKeyActivity : K9Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_generate_key)
+        setLayout(R.layout.activity_generate_key)
         setTitle(R.string.generate_key_action)
 
         privateKey = findViewById(R.id.editViewPrivateKey)
